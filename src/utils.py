@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 from datetime import datetime
 from typing import Any
@@ -8,6 +9,15 @@ import requests
 from dotenv import load_dotenv
 
 load_dotenv()
+
+logger = logging.getLogger("utils")
+logger.setLevel(logging.DEBUG)
+
+path_to_file = os.path.join(os.path.abspath(__file__), os.pardir, os.pardir, "logs", "utils.log")
+file_handler = logging.FileHandler(path_to_file, mode="w", encoding="'utf-8")
+file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+file_handler.setFormatter(file_formatter)
+logger.addHandler(file_handler)
 
 
 def get_user_settings() -> Any:
@@ -21,26 +31,45 @@ def get_user_settings() -> Any:
         }
     """
 
+    logger.info(f"Вызов функции {get_user_settings.__name__}")
+
     path_to_file = os.path.join(os.path.abspath(__file__), os.pardir, os.pardir, "data", "user_settings.json")
     try:
         with open(path_to_file, "r") as jf:
             user_settings = json.load(jf)
-    except FileNotFoundError:
+    except FileNotFoundError as ex:
+        logger.error(f"Файл по заданному пути отсутствует {ex}")
         return {"user_currencies": [], "user_stocks": []}
+
+    logger.info(f"Функция {get_user_settings.__name__} возвращает данные из файла")
 
     return user_settings
 
 
-def get_transactions_list(date_time_str: str, path_to_file: str) -> list[dict]:
+def get_transactions_list(path_to_file: str) -> list:
     """
-    Функция для получения дата фрейма по данных операций пользователя из EXCEL - файла.
+    Функция для получения списка данных операций пользователя из EXCEL - файла.
+
+    :param path_to_file: Абсолютный путь к файлу
+    :return: список транзакций
+    """
+
+    logger.info(f"Вызов функции {get_transactions_list.__name__}")
+    return pd.read_excel(path_to_file).to_dict(orient="records")
+
+
+def get_transactions_list_for_period(date_time_str: str, path_to_file: str) -> list[dict]:
+    """
+    Функция для получения списка данных операций пользователя из EXCEL - файла.
     Принимает на вход дату и путь к файлу.
-    Возвращает дата фрейм с выборкой по периоду с начала месяца до заданной даты
+    Возвращает список с выборкой по периоду с начала месяца до заданной даты
 
     :param date_time_str: Строка с датой и временем в формате YYYY-MM-DD HH:MM:SS
     :param path_to_file: Абсолютный путь к файлу
-    :return transactions_df: дата фрейм транзакций за указанный период
+    :return transactions_df.to_dict: список транзакций за указанный период
     """
+
+    logger.info(f"Вызов функции {get_transactions_list_for_period.__name__}")
 
     stop_dt = datetime.strptime(date_time_str, "%Y-%m-%d %H:%M:%S")
     start_dt = datetime(stop_dt.year, stop_dt.month, 1, 0, 0, 0)
@@ -48,6 +77,8 @@ def get_transactions_list(date_time_str: str, path_to_file: str) -> list[dict]:
     try:
         operations_data = pd.read_excel(path_to_file)
         if len(operations_data) == 0:
+
+            logger.warning("Данные в файле не соответствуют ожидаемому формату")
             return []
 
         # Фильтрация по заданному периоду
@@ -58,14 +89,13 @@ def get_transactions_list(date_time_str: str, path_to_file: str) -> list[dict]:
             & (operations_data["Статус"] == "OK")
         ]
 
+        logger.info("Функция возвращает данные из файла")
         return transactions_df.to_dict("records")
-    except FileNotFoundError:
+
+    except FileNotFoundError as ex:
+
+        logger.error(f"Файл по заданному пути отсутствует {ex}")
         return []
-
-
-path_to_operations_file = os.path.join(os.path.abspath(__file__), os.pardir, os.pardir, "data", "operations.xlsx")
-
-get_transactions_list("2021-12-02 23:40:34", path_to_operations_file)
 
 
 def get_greeting_massage() -> str:
@@ -74,6 +104,8 @@ def get_greeting_massage() -> str:
 
     :return greeting_massage: Строка с одной из строк «Доброе утро» / «Добрый день» / «Добрый вечер» / «Доброй ночи»
     """
+
+    logger.info(f"Вызов функции {get_greeting_massage.__name__}")
 
     if 6 <= datetime.now().hour < 12:
         greeting_massage = "Доброе утро"
@@ -84,6 +116,7 @@ def get_greeting_massage() -> str:
     else:
         greeting_massage = "Доброй ночи"
 
+    logger.info("Функция возвращает результат")
     return greeting_massage
 
 
@@ -101,7 +134,10 @@ def get_cards_spends_list(transactions_list: list[dict]) -> list[dict]:
         }
     """
 
+    logger.info(f"Вызов функции {get_cards_spends_list.__name__}")
+
     if len(transactions_list) == 0:
+        logger.warning("Данные в файле отсутствуют")
         return []
 
     transactions_df = pd.DataFrame(transactions_list)
@@ -132,6 +168,7 @@ def get_cards_spends_list(transactions_list: list[dict]) -> list[dict]:
                 }
             )
 
+    logger.info("Функция возвращает отсортированные данные из файла")
     return cards_spend_list
 
 
@@ -149,6 +186,8 @@ def get_top_transaction_list(transactions_list: list[dict]) -> list[dict]:
                "description": operation["Описание"],
            }
     """
+
+    logger.info(f"Вызов функции {get_top_transaction_list.__name__}")
 
     top_operations_list = sorted(
         transactions_list,
@@ -168,6 +207,7 @@ def get_top_transaction_list(transactions_list: list[dict]) -> list[dict]:
             }
         )
 
+    logger.info("Функция возвращает отсортированные данные из файла")
     return response_top_transactions_list
 
 
@@ -185,6 +225,8 @@ def get_currency_rates(user_settings: dict[Any, Any]) -> list:
         }
     """
 
+    logger.info(f"Вызов функции {get_currency_rates.__name__}")
+
     # Получаем список валют из настроек пользователя
     list_of_currencies = user_settings["user_currencies"]
 
@@ -198,7 +240,10 @@ def get_currency_rates(user_settings: dict[Any, Any]) -> list:
     if response.status_code == 200:
         for currency in list_of_currencies:
             request_list.append({"currency": currency, "rate": data["Valute"][currency]["Value"]})
+    else:
+        logger.error(f"Сайт не отвечает. Ответ {response.status_code}")
 
+    logger.info("Функция возвращает данные из сайта")
     return request_list
 
 
@@ -215,6 +260,8 @@ def get_stock_prices(user_settings: dict[Any, Any]) -> list[dict]:
             "price": data["Global Quote"]["05. price"],
         }
     """
+
+    logger.info(f"Вызов функции {get_stock_prices.__name__}")
 
     # Извлекаем ключ
     api_key = os.getenv("API-key")
@@ -237,5 +284,8 @@ def get_stock_prices(user_settings: dict[Any, Any]) -> list[dict]:
                     "price": data["Global Quote"]["05. price"],
                 }
             )
+        else:
+            logger.error(f"Сайт по запросу компании {stock} не отвечает. Ответ {request.status_code}")
 
+    logger.info("Функция возвращает данные")
     return stock_prices_list

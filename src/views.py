@@ -1,19 +1,28 @@
 import json
+import logging
+import os
 
 from utils import (
-    get_transactions_list,
     get_cards_spends_list,
     get_currency_rates,
-    get_user_settings,
     get_greeting_massage,
     get_stock_prices,
     get_top_transaction_list,
+    get_transactions_list_for_period,
+    get_user_settings,
 )
 
-import os
+logger = logging.getLogger("views")
+logger.setLevel(logging.DEBUG)
+
+path_to_file = os.path.join(os.path.abspath(__file__), os.pardir, os.pardir, "logs", "views.log")
+file_handler = logging.FileHandler(path_to_file, mode="w", encoding="'utf-8")
+file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+file_handler.setFormatter(file_formatter)
+logger.addHandler(file_handler)
 
 
-def get_json_request(date_time_str: str) -> str:
+def get_main_page_request(date_time_str: str) -> str:
     """
     Функция, принимающую на вход строку с датой и временем
     и возвращающую JSON-ответ со следующими данными
@@ -39,12 +48,13 @@ def get_json_request(date_time_str: str) -> str:
         }
     """
 
+    logger.info(f"Вызов функции {get_main_page_request.__name__}")
     # Получаем приветственное сообщение в зависимости от времени обращения вызовом функции
     greeting_massage = get_greeting_massage()
 
     # Получаем данные из списка операций пользователя за указанный период
     path_to_operations_file = os.path.join(os.path.abspath(__file__), os.pardir, os.pardir, "data", "operations.xlsx")
-    transactions_list = get_transactions_list(date_time_str, path_to_operations_file)
+    transactions_list = get_transactions_list_for_period(date_time_str, path_to_operations_file)
     # Получаем траты по каждой карте за указанный период
     cards_spend_list = get_cards_spends_list(transactions_list)
     # Получаем список Топ - 5 транзакций за указанный период
@@ -69,7 +79,9 @@ def get_json_request(date_time_str: str) -> str:
         ensure_ascii=False,
     )
 
+    logger.info(f"Функция {get_main_page_request.__name__} возвращает JSON ответ")
     return json_resp
 
 
-print(get_json_request(date_time_str="2022-12-05 10:00:00"))
+#
+# print(get_json_request(date_time_str="2022-12-05 10:00:00"))

@@ -1,9 +1,20 @@
 import datetime
 import json
+import logging
+import os
 from typing import Optional
 
 import pandas as pd
 from dateutil.relativedelta import relativedelta
+
+logger = logging.getLogger("reports")
+logger.setLevel(logging.DEBUG)
+
+path_to_file = os.path.join(os.path.abspath(__file__), os.pardir, os.pardir, "logs", "reports.log")
+file_handler = logging.FileHandler(path_to_file, mode="w", encoding="'utf-8")
+file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+file_handler.setFormatter(file_formatter)
+logger.addHandler(file_handler)
 
 
 def spending_by_weekday(transactions: pd.DataFrame, date: Optional[str] = None) -> str:
@@ -27,8 +38,11 @@ def spending_by_weekday(transactions: pd.DataFrame, date: Optional[str] = None) 
         }
     """
 
+    logger.info(f"Вызов функции {spending_by_weekday.__name__}")
+
     # Проверка, если дата фрейм пустой возвращаем ответ
     if len(transactions) == 0:
+        logger.warning("Данные за указанный период отсутствуют")
         return json.dumps(
             {"Sunday": 0, "Monday": 0, "Tuesday": 0, "Wednesday": 0, "Thursday": 0, "Friday": 0, "Saturday": 0}
         )
@@ -76,4 +90,5 @@ def spending_by_weekday(transactions: pd.DataFrame, date: Optional[str] = None) 
         except ZeroDivisionError:
             response[day] = 0
 
+    logger.info("Функция возвращает результат")
     return json.dumps(response)

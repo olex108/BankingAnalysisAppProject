@@ -1,10 +1,20 @@
 import json
+import logging
 import os
 import re
 from datetime import datetime
 from typing import Any
 
-import pandas as pd
+from src.utils import get_transactions_list
+
+logger = logging.getLogger("services")
+logger.setLevel(logging.DEBUG)
+
+path_to_file = os.path.join(os.path.abspath(__file__), os.pardir, os.pardir, "logs", "services.log")
+file_handler = logging.FileHandler(path_to_file, mode="w", encoding="'utf-8")
+file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+file_handler.setFormatter(file_formatter)
+logger.addHandler(file_handler)
 
 
 def get_transactions_to_persons() -> str:
@@ -24,10 +34,12 @@ def get_transactions_to_persons() -> str:
         Артем П.
     """
 
+    logger.info(f"Вызов сервиса 'Поиск переводов физическим лицам' {get_transactions_to_persons.__name__}")
+
     # Извлекаем данные из файла
     path_to_file = os.path.join(os.path.abspath(__file__), os.pardir, os.pardir, "data", "operations.xlsx")
-    file_data = pd.read_excel(path_to_file)
-    data_list = file_data.to_dict("records")
+    data_list = get_transactions_list(path_to_file)
+
     pattern = re.compile(r"\b[А-ЯЁ][а-яе]+\b\s\b[А-ЯЁ]{1}\b\.")
 
     # Фильтрация по заданному паттерну
@@ -38,6 +50,7 @@ def get_transactions_to_persons() -> str:
             if match:
                 transactions_list.append(transaction)
 
+    logger.info("Cервис возвращает результат")
     return json.dumps(
         transactions_list,
         indent=4,
@@ -75,9 +88,13 @@ def investment_bank(month: str, transactions: list[dict[str, Any]], limit: int) 
         {"amount_saved": float}
     """
 
+    logger.info(f"Вызов сервиса 'Инвесткопилка' {investment_bank.__name__}")
+
     # Проверка если транзакции отсутствуют ответ
     if len(transactions) == 0:
+        logger.warning("Данные в файле за указанный период отсутствуют")
         return json.dumps({"amount_saved": 0})
+
     month_dt = datetime.strptime(month, "%Y-%m")
     savings_amount = 0
     total_spends = 0
@@ -95,4 +112,5 @@ def investment_bank(month: str, transactions: list[dict[str, Any]], limit: int) 
             )
             total_spends += transaction["Сумма операции"]
 
+    logger.info("Cервис возвращает результат")
     return json.dumps({"amount_saved": round(savings_amount, 2)})

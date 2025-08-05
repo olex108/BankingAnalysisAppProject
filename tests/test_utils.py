@@ -4,15 +4,8 @@ from unittest.mock import Mock, patch
 import pandas
 from freezegun import freeze_time
 
-from src.utils import (
-    get_cards_spends_list,
-    get_currency_rates,
-    get_greeting_massage,
-    get_stock_prices,
-    get_top_transaction_list,
-    get_transactions_list,
-    get_user_settings,
-)
+from src.utils import (get_cards_spends_list, get_currency_rates, get_greeting_massage, get_stock_prices,
+                       get_top_transaction_list, get_transactions_list_for_period, get_user_settings)
 
 
 @freeze_time("2025-04-01 11:00:00")
@@ -40,11 +33,13 @@ def test_get_user_settings_file_error() -> None:
 
 
 @patch("pandas.read_excel")
-def test_get_transactions_list(mock_get: Mock, transactions_df: pandas.DataFrame) -> None:
+def test_get_transactions_list_for_period(mock_get: Mock, transactions_df: pandas.DataFrame) -> None:
 
     mock_get.return_value = pandas.DataFrame(transactions_df)
 
-    assert get_transactions_list("2021-12-02 23:40:34", "data/operations.xlsx") == transactions_df.to_dict("records")
+    assert get_transactions_list_for_period(
+        "2021-12-02 23:40:34",
+        "data/operations.xlsx") == transactions_df.to_dict("records")
 
     mock_get.return_value = pandas.DataFrame(
         {
@@ -66,7 +61,7 @@ def test_get_transactions_list(mock_get: Mock, transactions_df: pandas.DataFrame
         }
     )
 
-    assert get_transactions_list("2021-12-02 23:40:34", "data/operations.xlsx") == []
+    assert get_transactions_list_for_period("2021-12-02 23:40:34", "data/operations.xlsx") == []
 
 
 def test_get_cards_spends_list(transactions_df: pandas.DataFrame) -> None:
