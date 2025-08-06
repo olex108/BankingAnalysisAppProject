@@ -27,7 +27,6 @@ def get_transactions_to_persons() -> str:
     Категория такой транзакции — Переводы, а в описании есть имя и первая буква фамилии с точкой.
 
     :returns transactions: Список отсортированных транзакций в которых указано Имя и фамилия в описании
-
         Например:
         Валерий А.
         Сергей З.
@@ -58,7 +57,7 @@ def get_transactions_to_persons() -> str:
     )
 
 
-def investment_bank(month: str, transactions: list[dict[str, Any]], limit: int) -> str:
+def investment_bank(month: str, transactions: list[Any], limit: int) -> str:
     ######################
     #         /\         #
     #    /\  /  \  /\    #

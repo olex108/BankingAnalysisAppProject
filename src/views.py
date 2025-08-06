@@ -2,15 +2,8 @@ import json
 import logging
 import os
 
-from utils import (
-    get_cards_spends_list,
-    get_currency_rates,
-    get_greeting_massage,
-    get_stock_prices,
-    get_top_transaction_list,
-    get_transactions_list_for_period,
-    get_user_settings,
-)
+from utils import (get_cards_spends_list, get_currency_rates, get_greeting_massage, get_stock_prices,
+                   get_top_transaction_list, get_transactions_list_for_period, get_user_settings)
 
 logger = logging.getLogger("views")
 logger.setLevel(logging.DEBUG)

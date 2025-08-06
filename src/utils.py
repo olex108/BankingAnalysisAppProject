@@ -58,9 +58,21 @@ def get_transactions_list(path_to_file: str) -> list:
     return pd.read_excel(path_to_file).to_dict(orient="records")
 
 
+def get_transactions_df(path_to_file: str) -> pd.DataFrame:
+    """
+    Функция для получения дата фрейма данных операций пользователя из EXCEL - файла.
+
+    :param path_to_file: Абсолютный путь к файлу
+    :return: список транзакций
+    """
+
+    logger.info(f"Вызов функции {get_transactions_df.__name__}")
+    return pd.read_excel(path_to_file)
+
+
 def get_transactions_list_for_period(date_time_str: str, path_to_file: str) -> list[dict]:
     """
-    Функция для получения списка данных операций пользователя из EXCEL - файла.
+    Функция для получения списка данных за определенный период операций пользователя из EXCEL - файла.
     Принимает на вход дату и путь к файлу.
     Возвращает список с выборкой по периоду с начала месяца до заданной даты
 
@@ -122,7 +134,7 @@ def get_greeting_massage() -> str:
 
 def get_cards_spends_list(transactions_list: list[dict]) -> list[dict]:
     """
-    Функция для получения списка трат по каждой карте дата фрейма.
+    Функция для получения списка трат по каждой карте списка операций.
     Функция принимает дата фрейм, по множеству номеров карт из данных вычисляется сумма расходов и кэшбэк.
 
     :param transactions_list: Данные в формате дата фрейма
@@ -174,7 +186,7 @@ def get_cards_spends_list(transactions_list: list[dict]) -> list[dict]:
 
 def get_top_transaction_list(transactions_list: list[dict]) -> list[dict]:
     """
-    Функция для получения списка ТОП 5 транзакций по данным дата фрейма.
+    Функция для получения списка ТОП 5 транзакций по данным списка операций.
     Функция принимает дата фрейм, сортирует список транзакций, выводит первые 5 элементов списка.
 
     :param transactions_list: Данные в формате дата фрейма
