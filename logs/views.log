@@ -1,0 +1,2 @@
+2025-08-06 01:29:53,944 - views - INFO - Вызов функции get_main_page_request
+2025-08-06 01:29:55,260 - views - INFO - Функция get_main_page_request возвращает JSON ответ
